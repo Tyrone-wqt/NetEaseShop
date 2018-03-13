@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wqt.dao.OrdersDao">
+
+    <insert id="insertOrdersFromCartByUserId" parameterType="Integer">
+        insert into
+orders(cid,uid,count,orderDate,price)
+select
+cart.cid,cart.uid,cart.count,NOW(),content.cPrice
+FROM
+cart
+LEFT JOIN
+content
+on
+cart.cid=content.id
+WHERE
+cart.uid=#{userId}
+    </insert>
+
+    <resultMap id="OrderInAccount" type="Order">
+        <id property="id" column="id"></id>
+        <result property="count" column="count"></result>
+        <result property="price" column="price"></result>
+        <result property="date" column="orderDate"></result>
+        <association property="content" javaType="Content">
+            <id property="id" column="c_id"></id>
+            <result property="cTitle" column="cTitle"></result>
+            <result property="cAbstract" column="cAbstract"></result>
+            <result property="cText" column="cText"></result>
+            <result property="cPrice" column="cPrice"></result>
+            <result property="cImgUrl" column="cImgUrl"></result>
+        </association>
+    </resultMap>
+
+    <select id="getOrderListByUserId" parameterType="Integer" resultMap="OrderInAccount">
+        select orders.id , orders.count, orders.price, orders.orderDate, content.id as c_id,
+        content.cTitle, content.cAbstract, content.cText,content.cPrice, content.cImgUrl
+        FROM
+        orders
+        left JOIN
+        content
+        ON
+        orders.cid= content.id
+        WHERE orders.uid=#{userId}
+    </select>
+
+
+</mapper>

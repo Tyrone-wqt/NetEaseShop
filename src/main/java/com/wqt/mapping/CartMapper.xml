@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wqt.dao.CartDao">
+
+
+
+    <insert id="addContentById" >
+        INSERT INTO cart(id,cid,uid,count) VALUES(NULL ,#{contentId},#{userId},#{num}) on DUPLICATE KEY UPDATE count=count+#{num}
+    </insert>
+
+
+    <resultMap id="cartList" type="Cart">
+        <id property="id" column="id"></id>
+        <result property="count" column="count"></result>
+        <association property="content" javaType="Content">
+            <id property="id" column="c_id"></id>
+            <result property="cTitle" column="cTitle"></result>
+            <result property="cAbstract" column="cAbstract"></result>
+            <result property="cText" column="cText"></result>
+            <result property="cPrice" column="cPrice"></result>
+            <result property="cImgUrl" column="cImgUrl"></result>
+            <result property="tag" column="sid"></result>
+        </association>
+
+    </resultMap>
+
+    <select id="getCartListByUserId" parameterType="Integer" resultMap="cartList">
+        SELECT
+        cart.id, cart.count, content.id as c_id, content.cTitle,content.cAbstract,content.cText,content.cPrice,content.cImgUrl,content.sid
+        FROM
+        content,cart
+        WHERE
+        cart.uid=#{userId}
+        and
+        cart.cid=content.id
+    </select>
+
+    <delete id="deleteCartByCartId" parameterType="Integer">
+        delete from cart where cart.id=#{cartId}
+    </delete>
+
+    <delete id="deleteCartByUserId" parameterType="Integer">
+        delete FROM cart where cart.uid=#{userId}
+    </delete>
+
+</mapper>

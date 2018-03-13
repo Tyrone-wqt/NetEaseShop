@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wqt.dao.ContentDao">
+
+
+    <resultMap id="buyerContent" type="Content">
+        <id property="id" column="id"></id>
+        <result property="cTitle" column="cTitle"></result>
+        <result property="cAbstract" column="cAbstract"></result>
+        <result property="cText" column="cText"></result>
+        <result property="cPrice" column="cPrice"></result>
+        <result property="cImgUrl" column="cImgUrl"></result>
+        <result property="tag" column="uid" typeHandler="com.wqt.Handler.EmptyIntegerIfNull"></result>
+    </resultMap>
+
+    <resultMap id="sellerContent" type="Content">
+        <id property="id" column="id"></id>
+        <result property="cTitle" column="cTitle"></result>
+        <result property="cAbstract" column="cAbstract"></result>
+        <result property="cText" column="cText"></result>
+        <result property="cPrice" column="cPrice"></result>
+        <result property="cImgUrl" column="cImgUrl"></result>
+        <result property="tag" column="soldNum" typeHandler="com.wqt.Handler.EmptyIntegerIfNull"></result>
+    </resultMap>
+
+
+    <select id="getAllContentList" resultType="Content">
+        select id, cTitle, cAbstract, cText, cPrice,cImgUrl,sid from content;
+    </select>
+
+    <select id="getSellerContentListById" parameterType="Integer" resultMap="sellerContent">
+        SELECT content.id, cTitle, cAbstract, cText, cPrice,cImgUrl,sum(orders.count) as soldNum from content LEFT JOIN orders
+on content.id=orders.cid
+where content.sid=#{userId}
+GROUP BY content.id
+    </select>
+
+    <select id="getBuyerContentListById" parameterType="Integer" resultMap="buyerContent">
+        SELECT
+	content.*,
+	orders.uid
+FROM
+	content
+LEFT JOIN orders
+on
+	content.id = orders.cid
+AND orders.uid = #{userId}
+    </select>
+
+    <select id="getUnpurchasedContentListById" parameterType="Integer" resultType="Content">
+        SELECT content.* from content where content.id not in(SELECT orders.cid from orders WHERE orders.uid=#{userId})
+    </select>
+
+    <select id="getContentById" parameterType="Integer" resultType="Content">
+        SELECT * FROM content WHERE id=#{contentId}
+    </select>
+
+    <resultMap id="showBuyerContent" type="Content">
+        <id property="id" column="id"></id>
+        <result property="cTitle" column="cTitle"></result>
+        <result property="cAbstract" column="cAbstract"></result>
+        <result property="cText" column="cText"></result>
+        <result property="cPrice" column="cPrice"></result>
+        <result property="cImgUrl" column="cImgUrl"></result>
+        <result property="tag" column="price" typeHandler="com.wqt.Handler.EmptyIntegerIfNull"></result>
+    </resultMap>
+
+    <select id="getContentByBuyerIdAndContentId" resultMap="showBuyerContent">
+        SELECT
+	content.*,
+	orders.price
+FROM
+	content
+LEFT JOIN orders ON content.id = orders.cid
+AND orders.uid = #{buyerId}
+WHERE
+	content.id = #{contentId}
+    </select>
+
+    <delete id="deleteContentByContentId" parameterType="Integer">
+        DELETE from content where content.id=#{contentId}
+    </delete>
+
+    <insert id="insertContent" useGeneratedKeys="true" keyProperty="id" parameterType="Content">
+        insert into content(cTitle,cAbstract,cText,cImgUrl,cPrice,sid)
+        VALUES (#{cTitle},#{cAbstract},#{cText},#{cImgUrl},#{cPrice},#{sid})
+    </insert>
+
+    <update id="updateContent" parameterType="Content">
+        UPDATE content set cTitle=#{cTitle},cAbstract=#{cAbstract},cText=#{cText},cImgUrl=#{cImgUrl},
+        cPrice=#{cPrice},sid=#{sid} WHERE id=#{id}
+    </update>
+
+</mapper>
